@@ -1,6 +1,6 @@
 # Stealwarning raw firmware for ESP32 + ILI9341 touch display
 
-## What forks?
+## What works?
 1. Theme selector
 2. Touch
 3. Brightness
