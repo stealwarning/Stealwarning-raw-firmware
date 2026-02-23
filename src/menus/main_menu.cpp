@@ -4,6 +4,19 @@
 #include "ui.h"
 #include "draw_icons.h"
 
+struct MenuOption {
+    const char* label;
+    void (*drawIcon)(int, int, int, uint16_t);
+    ScreenState targetScreen;
+};
+
+const MenuOption options[] = {
+    {"Settings", drawIconSettings, SETTINGS_MENU},
+    {"Keyboard", drawIconKeyboard, KEYBOARD_MENU},
+    {"Explorer", drawIconExplorer, FILE_EXPLORER}
+};
+
+const int totalOptions = sizeof(options) / sizeof(options[0]);
 int selectedOption = 0;
 
 void drawMainMenu() {
@@ -12,44 +25,32 @@ void drawMainMenu() {
 
     tft.setTextColor(currentTheme.icon);
     tft.setTextSize(4);
-    tft.setCursor(20, 110); tft.print("<");
-    tft.setCursor(280, 110); tft.print(">");
+    tft.setCursor(20, 110); tft.print(F("<"));
+    tft.setCursor(280, 110); tft.print(F(">"));
 
-    if (selectedOption == 0) {
-        drawIconSettings(136, 90, 48, currentTheme.icon);
-    } else if (selectedOption == 1) {
-        drawIconKeyboard(136, 90, 48, currentTheme.icon);
-    } else if (selectedOption == 2) {
-        drawIconExplorer(136, 90, 48, currentTheme.icon);
-    }
+    options[selectedOption].drawIcon(136, 90, 48, currentTheme.icon);
     
     tft.setTextColor(currentTheme.text);
     tft.setTextSize(2);
     
-    String label = "";
-    if (selectedOption == 0) label = "Settings";
-    else if (selectedOption == 1) label = "Keyboard";
-    else if (selectedOption == 2) label = "Explorer";
-
-    tft.setCursor(160 - (label.length() * 6), 185);
+    const char* label = options[selectedOption].label;
+    int labelX = 160 - (strlen(label) * 6); 
+    tft.setCursor(labelX, 185);
     tft.print(label);
 }
 
 void handleMainMenuTouch(int x, int y) {
-    if (x < 80 && y > 40 && y < 180) {
-        selectedOption--;
-        if (selectedOption < 0) selectedOption = 2;
-        drawMainMenu();
-    }
-    else if (x > 240 && y > 40 && y < 180) {
-        selectedOption++;
-        if (selectedOption > 2) selectedOption = 0; 
-        drawMainMenu();
-    }
-    else if (x > 100 && x < 220 && y > 40 && y < 180) {
-        if (selectedOption == 0) currentScreen = SETTINGS_MENU;
-        else if (selectedOption == 1) currentScreen = KEYBOARD_MENU;
-        else currentScreen = FILE_EXPLORER;
-        drawCurrentScreen();
+    if (y > 40 && y < 180) {
+        if (x < 80) {
+            selectedOption = (selectedOption - 1 + totalOptions) % totalOptions;
+            drawMainMenu();
+        }
+        else if (x > 240) {
+            selectedOption = (selectedOption + 1) % totalOptions;
+            drawMainMenu();
+        }
+        else if (x > 100 && x < 220) {
+            changeScreen(options[selectedOption].targetScreen); 
+        }
     }
 }

@@ -6,7 +6,6 @@
 #include "touch.h"
 #include "screens.h"
 #include "menus/wifi_menu.h"
-#include <Preferences.h>
 #include <SD.h>
 #include <WiFi.h>
 
@@ -20,26 +19,34 @@ const unsigned long SLEEP_TIMEOUT = 15000;
 void setup() {
     Serial.begin(115200);
 
-    pinMode(5, OUTPUT);  digitalWrite(5, HIGH);  
-    pinMode(21, OUTPUT); digitalWrite(21, HIGH); 
+    pinMode(TFT_BL, OUTPUT); 
+    ledcSetup(0, 5000, 8);
+    ledcAttachPin(TFT_BL, 0);
+    ledcWrite(0, 150);
+
+    pinMode(5, OUTPUT);  digitalWrite(5, HIGH);
+    pinMode(21, OUTPUT); digitalWrite(21, HIGH);
     pinMode(15, OUTPUT); digitalWrite(15, HIGH); 
 
     delay(200);
 
-    Serial.println("Mounting SD...");
+    Serial.println(F("Mounting SD..."));
+    SPI.begin();
+    
     if (!SD.begin(5, SPI, 4000000)) { 
-        Serial.println("Mounting failed. Retrying at lower speed...");
+        Serial.println(F("Mounting failed. Retrying at 100kHz..."));
         delay(500);
-        if (!SD.begin(5, SPI, 400000)) { 
-            Serial.println("SD Card Failed permanently!");
+        if (!SD.begin(5, SPI, 100000)) { 
+            Serial.println(F("SD Card Failed permanently!"));
         } else {
-            Serial.println("SD Card Mounted at 400kHz!");
+            Serial.println(F("SD Card Mounted at 100kHz!"));
         }
     } else {
-        Serial.println("SD Card Mounted Successfully!");
+        Serial.println(F("SD Card Mounted Successfully!"));
     }
 
     loadSettings();
+    ledcWrite(0, currentBrightness);
 
     tft.init();
     tft.setRotation(1);
@@ -52,15 +59,9 @@ void setup() {
         delay(10);
     }
 
-    ledcSetup(0, 5000, 8);
-    ledcAttachPin(TFT_BL, 0);
-    ledcWrite(0, currentBrightness);
-
     drawCurrentScreen();
-
     lastInteractionTime = millis();
 }
-
 void loop() {
     static bool lastState = false;
     handleTouch();
@@ -70,20 +71,14 @@ void loop() {
     }
 
     if (isScreenOff != lastState) {
-        if (isScreenOff) {
-            ledcWrite(0, 0);
-            Serial.println("Hardware: Display Sleep");
-        } else {
-            ledcWrite(0, currentBrightness);
-            Serial.println("Hardware: Display Wake");
-        }
+        ledcWrite(0, isScreenOff ? 0 : currentBrightness);
         lastState = isScreenOff;
     }
 
-    static int lastWifiN = -1;
-    static wl_status_t lastWifiS = WL_NO_SHIELD;
+    if (!isScreenOff && currentScreen == WIFI_MENU) {
+        static int lastWifiN = -1;
+        static wl_status_t lastWifiS = WL_NO_SHIELD;
 
-    if (currentScreen == WIFI_MENU) {
         int currentN = WiFi.scanComplete();
         wl_status_t currentS = WiFi.status();
         

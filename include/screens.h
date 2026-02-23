@@ -20,8 +20,8 @@ extern KeyboardTarget currentKbdTarget;
 extern String inputBuffer;
 
 void drawSidebar();
-void changeScreen(ScreenState newScreen); 
 void drawCurrentScreen();
+void changeScreen(ScreenState newScreen);
 void processAllTouches(int x, int y, bool isMoving);
 
 #endif

@@ -10,9 +10,6 @@ struct Theme {
 };
 
 extern Theme currentTheme;
-extern Theme themeGreen;
-extern Theme themeRed;
-extern Theme themeBlue;
-extern Theme themeWhite;
+extern const Theme allThemes[]; 
 
 void setTheme(Theme t);

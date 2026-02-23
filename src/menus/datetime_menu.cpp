@@ -17,13 +17,13 @@ void drawArrow(int x, int y, bool up, uint16_t color) {
 void drawDateTimeMenu() {
     tft.fillScreen(currentTheme.background);
     drawStatusBar();
-    drawNavigationButtons();
+    drawSidebar();
     updateSystemTime();
 
     tft.setTextColor(currentTheme.text, currentTheme.background);
     tft.setTextSize(3);
     tft.setCursor(95, 35); 
-    tft.print("Set Time");
+    tft.print(F("Set Time"));
 
     int timeY = 110;
     int hourX = 85;

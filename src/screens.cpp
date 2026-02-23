@@ -1,4 +1,3 @@
-#include <TFT_eSPI.h>
 #include "screens.h"
 #include "menus/main_menu.h"
 #include "menus/settings_menu.h"
@@ -13,28 +12,23 @@
 ScreenState currentScreen = MAIN_MENU;
 ScreenState previousScreen = MAIN_MENU;
 KeyboardTarget currentKbdTarget = KBD_NONE;
-
-extern String inputBuffer;
-extern int wifiOffset;
-extern String selectedSSID;
-
-extern int wifiOffset = 0;
-
 String selectedSSID = "";
+int wifiOffset = 0;
+unsigned long lastScreenChange = 0;
 
 void drawSidebar() {
     tft.drawFastVLine(60, 0, 240, currentTheme.text);
     
-    tft.drawRoundRect(5, 20, 50, 45, 5, currentTheme.backButton); 
+    tft.drawRoundRect(5, 35, 50, 45, 5, currentTheme.backButton); 
     tft.setTextColor(currentTheme.backButton);
     tft.setTextSize(2);
-    tft.setCursor(20, 32);
-    tft.print("<-");
+    tft.setCursor(20, 47);
+    tft.print(F("<-"));
 
-    tft.drawRoundRect(5, 75, 50, 45, 5, currentTheme.icon);
+    tft.drawRoundRect(5, 90, 50, 45, 5, currentTheme.icon);
     tft.setTextColor(currentTheme.icon);
-    tft.setCursor(22, 87);
-    tft.print("H"); 
+    tft.setCursor(22, 102);
+    tft.print(F("H")); 
 }
 
 void drawCurrentScreen() {
@@ -52,27 +46,30 @@ void drawCurrentScreen() {
 
 void processAllTouches(int x, int y, bool isMoving) {
     if (currentScreen != MAIN_MENU && !isMoving && x < 60) {
-        if (y > 20 && y < 70) {
-            if (currentScreen == WIFI_MENU || currentScreen == DATETIME_MENU) {
-                changeScreen(SETTINGS_MENU);
-            } 
-            else if (currentScreen == SETTINGS_MENU && currentPage != CATEGORIES) {
-                currentPage = CATEGORIES;
-                drawSettingsMenu();
-            } 
-            else if (currentScreen == FILE_EXPLORER && currentPath != "/") {
-                int lastSlash = currentPath.lastIndexOf('/');
-                String parentPath = currentPath.substring(0, lastSlash);
-                if (parentPath == "") parentPath = "/";
-                drawFileExplorer(parentPath.c_str());
-            } 
-            else {
-                changeScreen(MAIN_MENU);
+        if (y > 35 && y < 80) {
+            switch (currentScreen) {
+                case WIFI_MENU:
+                case DATETIME_MENU: 
+                    changeScreen(SETTINGS_MENU); break;
+                case SETTINGS_MENU:
+                    if (currentPage != CATEGORIES) { 
+                        currentPage = CATEGORIES; drawSettingsMenu(); 
+                    } else changeScreen(MAIN_MENU); 
+                    break;
+                case FILE_EXPLORER: {
+                    if (currentPath != "/") {
+                        int lastSlash = currentPath.lastIndexOf('/');
+                        currentPath = currentPath.substring(0, max(1, lastSlash));
+                        drawFileExplorer(currentPath.c_str());
+                    } else changeScreen(MAIN_MENU);
+                    break;
+                }
+                default: changeScreen(MAIN_MENU); break;
             }
             return;
         }
         
-        if (y > 80 && y < 130) {
+        if (y > 90 && y < 135) {
             changeScreen(MAIN_MENU);
             return;
         }
@@ -93,7 +90,6 @@ void processAllTouches(int x, int y, bool isMoving) {
     }
 }
 
-unsigned long lastScreenChange = 0;
 void changeScreen(ScreenState newScreen) {
     if (millis() - lastScreenChange < 300) return;
     lastScreenChange = millis();
@@ -106,11 +102,9 @@ void changeScreen(ScreenState newScreen) {
     if (newScreen == WIFI_MENU) {
         wifiOffset = 0;
         WiFi.mode(WIFI_STA);
-        if (WiFi.status() != WL_CONNECTED) {
-            WiFi.scanNetworks(true);
-        }
+        if (WiFi.status() != WL_CONNECTED) WiFi.scanNetworks(true);
     }
 
-    tft.fillScreen(currentTheme.background); 
+    tft.fillScreen(currentTheme.background);
     drawCurrentScreen();
 }

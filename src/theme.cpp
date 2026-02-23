@@ -1,18 +1,14 @@
 #include "theme.h"
-#include "config.h"
+#include "TFT_eSPI.h"
 
-Theme themeGreen = {TFT_BLACK, TFT_DARKGREEN, TFT_GREEN, TFT_GREEN, TFT_WHITE};
-Theme themeRed = {TFT_BLACK, TFT_MAROON, TFT_RED, TFT_RED, TFT_WHITE};
-Theme themeBlue = {TFT_BLACK, TFT_NAVY, TFT_CYAN, TFT_CYAN, TFT_WHITE};
-Theme themeWhite = {
-    TFT_BLACK,    
-    TFT_LIGHTGREY,
-    TFT_WHITE,    
-    TFT_WHITE,     
-    TFT_DARKGREY  
+const Theme allThemes[] = {
+    {TFT_BLACK, TFT_DARKGREEN, TFT_GREEN, TFT_GREEN, TFT_WHITE}, // Green
+    {TFT_BLACK, TFT_MAROON, TFT_RED, TFT_RED, TFT_WHITE},        // Red
+    {TFT_BLACK, TFT_NAVY, TFT_CYAN, TFT_CYAN, TFT_WHITE},        // Blue
+    {TFT_BLACK, TFT_LIGHTGREY, TFT_WHITE, TFT_WHITE, TFT_DARKGREY} // White
 };
 
-Theme currentTheme = themeGreen;
+Theme currentTheme = allThemes[0];
 
 void setTheme(Theme t) {
     currentTheme = t;

@@ -6,24 +6,40 @@
 #include "screens.h"
 
 String currentPath = "/";
+bool isViewingFile = false;
 
 void drawFileExplorer(const char * dirname) {
+    isViewingFile = false;
     currentPath = String(dirname);
     tft.fillScreen(currentTheme.background);
     drawStatusBar();
-    drawNavigationButtons();
+    drawSidebar();
 
     int startX = 70;
     tft.setTextColor(currentTheme.text);
     tft.setTextSize(2);
     
     tft.setCursor(startX, 35);
-    tft.print("Dir: ");
+    tft.print(F("Dir: "));
     tft.setTextColor(currentTheme.icon);
     tft.print(currentPath);
 
     File root = SD.open(dirname);
-    if (!root) return;
+    
+    if (!root) {
+        tft.setTextColor(0xF800);
+        tft.setCursor(startX, 80);
+        tft.print(F("Failed to open dir!"));
+        return;
+    }
+    
+    if (!root.isDirectory()) {
+        tft.setTextColor(0xF800);
+        tft.setCursor(startX, 80);
+        tft.print(F("Not a directory!"));
+        root.close();
+        return;
+    }
 
     int yPos = 75;
     int rowHeight = 32;
@@ -33,12 +49,19 @@ void drawFileExplorer(const char * dirname) {
         tft.drawFastHLine(startX, yPos + rowHeight - 2, 240, currentTheme.statusBar);
         tft.setTextColor(currentTheme.icon);
         tft.setCursor(startX + 30, yPos + 5);
-        tft.print(".. (Back)");
+        tft.print(F(".. (Back)"));
         yPos += rowHeight;
         count++;
     }
 
     File file = root.openNextFile();
+    
+    if (!file && count == 0) {
+        tft.setTextColor(currentTheme.text);
+        tft.setCursor(startX, 80);
+        tft.print(F("Empty Folder"));
+    }
+
     while (file && count < 6) {
         tft.drawFastHLine(startX, yPos + rowHeight - 2, 240, currentTheme.statusBar);
 
@@ -50,7 +73,9 @@ void drawFileExplorer(const char * dirname) {
 
         tft.setTextColor(currentTheme.text);
         tft.setCursor(startX + 30, yPos + 5);
-        tft.print(String(file.name()).substring(0, 15));
+        
+        String fname = file.name();
+        tft.print(fname.substring(0, 15));
 
         yPos += rowHeight;
         count++;
@@ -60,16 +85,15 @@ void drawFileExplorer(const char * dirname) {
 }
 
 void viewFileContents(const char * path) {
+    isViewingFile = true;
     tft.fillScreen(currentTheme.background);
     drawStatusBar();
+    drawSidebar(); 
     
-    tft.drawRoundRect(5, 30, 50, 40, 5, currentTheme.backButton);
-    tft.setCursor(15, 42); tft.setTextColor(currentTheme.backButton); tft.print("X");
-
     tft.setTextColor(currentTheme.text);
     tft.setTextSize(1);
     tft.setCursor(70, 35);
-    tft.print("File: "); tft.println(path);
+    tft.print(F("File: ")); tft.println(path);
     tft.drawFastHLine(70, 48, 240, currentTheme.statusBar);
 
     File file = SD.open(path);
@@ -81,16 +105,20 @@ void viewFileContents(const char * path) {
             line++;
         }
         file.close();
+    } else {
+        tft.setCursor(70, 60);
+        tft.setTextColor(0xF800);
+        tft.print(F("Error reading file!"));
     }
 }
 
 void handleFileExplorerTouch(int x, int y) {
-    if (x < 60 && y > 20 && y < 70) {
+    if (x < 70) return;
+
+    if (isViewingFile) {
         drawFileExplorer(currentPath.c_str());
         return;
     }
-
-    if (x < 70) return;
 
     int rowHeight = 32;
     int startY = 75;

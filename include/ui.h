@@ -17,7 +17,6 @@ void drawMainMenu(int selected);
 
 void drawSettingsMenu();
 void drawKeyboardMenu();
-void drawNavigationButtons();
 
 void loadSettings();
 

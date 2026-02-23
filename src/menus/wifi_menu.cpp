@@ -10,45 +10,45 @@ void drawWifiMenu() {
 
     tft.fillScreen(currentTheme.background); 
     drawStatusBar();
-    drawNavigationButtons();
+    drawSidebar();
 
     tft.setTextColor(currentTheme.text);
     tft.setTextSize(2);
     tft.setCursor(70, 35);
 
     if (selectedSSID != "" && status != WL_CONNECTED) {
-        tft.print("Connecting...");
+        tft.print(F("Connecting..."));
         tft.setCursor(70, 65);
         tft.setTextColor(currentTheme.icon);
         tft.print(selectedSSID.substring(0, 15));
         
         tft.setTextColor(currentTheme.text);
         tft.setCursor(70, 100);
-        tft.print("Status: Wait...");
+        tft.print(F("Status: Wait..."));
         
         tft.drawRoundRect(70, 160, 120, 40, 5, 0xF800); 
-        tft.setCursor(85, 172); tft.setTextColor(0xF800); tft.print("CANCEL");
+        tft.setCursor(85, 172); tft.setTextColor(0xF800); tft.print(F("CANCEL"));
         return; 
     }
 
     int n = WiFi.scanComplete();
     
     if (status == WL_CONNECTED) {
-        tft.print("ON: "); tft.setTextColor(0x07E0);
+        tft.print(F("ON: ")); tft.setTextColor(0x07E0);
         tft.print(WiFi.SSID().substring(0, 12));
     } else {
-        tft.print("WiFi Networks");
+        tft.print(F("WiFi Networks"));
     }
 
     tft.setTextColor(currentTheme.text);
 
     if (n == -1 || n == -2) {
         tft.setCursor(70, 80);
-        tft.print("Scanning...");
-    } else if (n == 0) {
+        tft.print(F("Scanning..."));
+    } else if (n <= 0) {
         tft.setCursor(70, 80);
-        tft.print("No networks. Scan?");
-        WiFi.scanNetworks(true); 
+        tft.print(F("No networks. Scan?"));
+        if (n == 0) WiFi.scanNetworks(true); 
     } else {
         if (n > 5) {
             tft.fillTriangle(295, 75, 285, 95, 305, 95, (wifiOffset > 0) ? currentTheme.icon : currentTheme.statusBar);
