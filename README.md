@@ -8,7 +8,7 @@
 5. Memory
 6. Sleep (save screen)
 7. File Explorer
-8. Wifi connect With bugs
+8. Wifi connect
 
 # Display Pin Configuration
 
